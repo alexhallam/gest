@@ -1,0 +1,64 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# gest
+
+<!-- badges: start -->
+[![Travis build status](https://travis-ci.org/alexhallam/gest.svg?branch=master)](https://travis-ci.org/alexhallam/gest)
+<!-- badges: end -->
+
+The goal of gest is to create shrinkage estimates in a flexible and fast way.
+This package is a convenient wrapper for the `deconvolveR` package.
+## Installation
+
+You can install the released version of gest from [CRAN](https://CRAN.R-project.org) with:
+
+``` r
+install.packages("gest")
+```
+
+And the development version from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("alexhallam/gest")
+```
+## Example
+
+In the example below we use the `add_binom_gest` to calculate the "g-estimates" which
+are shrinkage estimators. Full posterior distributions are also calculated along with
+confidence intervals. 
+
+```{r example}
+library(tibble)
+library(gest)
+set.seed(2017)
+
+# simulate 200 random examples from a beta-binomial
+obs <- 200
+dat <- tibble(prob = rbeta(obs, 10, 50),
+                 n = round(rlnorm(obs, 4, 2)) + 1,
+                 x = rbinom(obs, n, prob))
+result <- add_binom_gest(dat, x, n)
+result
+```
+
+# Related Work
+
+[ebbr](https://github.com/dgrtwo/ebbr)
+
+# Academic Work
+
+[deconvolveR](https://cran.r-project.org/web/packages/deconvolveR/deconvolveR.pdf)
