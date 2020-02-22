@@ -1,0 +1,24 @@
+Package: gest
+Type: Package
+Title: What the Package Does (Title Case)
+Version: 0.1.0
+Author: Alex Hallam
+Maintainer: Alex Hallam <alexhallam6.28@tutanota.com>
+Description: This package adds empirical Bayes estimates 
+    via G-Modeling. G-Modeling uses devoncolution to estimate
+    the prior distribution. This is used to infer posterior
+    distributions.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.0.2
+Imports:
+    dplyr,
+    deconvolveR,
+    magrittr,
+    rlang,
+    tibble,
+    purrr,
+    stats
+Suggests:
+    testthat
