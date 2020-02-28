@@ -68,7 +68,7 @@ add_poisson_gest <- function(tbl, value,
 
   d <- data.frame(lambda = lambda, g = stats[, "g"], SE.g = stats[, "SE.g"], tg = stats[, "tg"])
   # seq_len(15) is filter aka truncation
-  gPost <- sapply(seq_len(max(tbl$value)), function(i) local({tg <- d$tg * result$P[i, ]; tg / sum(tg)}))
+  gPost <- sapply(seq_len(100), function(i) local({tg <- d$tg * result$P[i, ]; tg / sum(tg)}))
 
   get_dist <- function(value){
     df <- tibble(tau = tau, ghat = gPost[, (value + 1)]) # first columns is 0 which is position 1
