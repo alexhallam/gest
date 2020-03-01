@@ -32,22 +32,20 @@
 #'
 #' @examples
 #'
-#' library(tibble)
-#' set.seed(2017)
+#' library(tidyverse)
+#' library(ZIM)
+#' data(syph)
+#' df <- syph %>%
+#'   pivot_longer(cols = starts_with("a"), names_to = "key", values_to = "value")
 #'
-#' # simulate 200 random examples from a beta-binomial
-#' obs <- 200
-#' dat <- tibble(prob = rbeta(obs, 10, 50),
-#'                   n = round(rlnorm(obs, 4, 2)) + 1,
-#'                   x = rbinom(obs, n, prob))
-#'
-#' result <- add_binom_gest(dat, x, n)
-#' result
+#' df %>%
+#'   add_poisson_gest(value)
 add_poisson_gest <- function(tbl, value,
                            cred_level = .80,
                            theta_from = -4,
                            theta_to = 5.0,
                            theta_by = 0.1
+
                            ){
 
   value <- rlang::expr(value)
@@ -61,14 +59,14 @@ add_poisson_gest <- function(tbl, value,
   result <- deconvolveR::deconv(tau = tau, y = counts, n = N, c0=1, pDegree = 6, ignoreZero = TRUE)
   stats <- result$stats
   g <- result$stats[,"g"]
-  g <- g/sum(g)                   # why divide by the total g?
-  fE <- result$P %*% g            # what is P and why multiply the scaled g by it
-  fE <- counts[1] * fE/fE[1]  # counts[1] scales results to be same magnitude as data. fE[-1]/fE[1] maybe some Robbins thing.
-  log_counts <- log(counts)   # log_counts ~ fE
+  g <- g/sum(g)
+  fE <- result$P %*% g
+  fE <- counts[1] * fE/fE[1]
+  log_counts <- log(counts)
 
   d <- data.frame(lambda = lambda, g = stats[, "g"], SE.g = stats[, "SE.g"], tg = stats[, "tg"])
-  # seq_len(15) is filter aka truncation
-  gPost <- sapply(seq_len(100), function(i) local({tg <- d$tg * result$P[i, ]; tg / sum(tg)}))
+  # get lookup table of densities for each mean. columns represent means column 1 is mean = 0
+  gPost <- sapply(seq_len(nrow(result$P)), function(i) local({tg <- d$tg * result$P[i, ]; tg / sum(tg)}))
 
   get_dist <- function(value){
     df <- tibble(tau = tau, ghat = gPost[, (value + 1)]) # first columns is 0 which is position 1
@@ -97,37 +95,18 @@ add_poisson_gest <- function(tbl, value,
     group_by(key) %>%
     summarise(value = floor(mean(value))) %>%
     ungroup() %>%
-    # nest(data = everything()) %>%
     mutate(.gest_dist = purrr::map(.x = value, .f = get_dist)) %>%
-  #   unnest(data) %>%
     dplyr::mutate(
-      .lo = purrr::map_dbl(.gest_dist, get_lo, .2),
-      .hi = purrr::map_dbl(.gest_dist, get_hi, .8)
+      .gest = purrr::map_dbl(.gest_dist, get_mle),
+      .lo = purrr::map_dbl(.gest_dist, get_lo, alpha_lo/100),
+      .hi = purrr::map_dbl(.gest_dist, get_hi, alpha_hi/100)
     )
-  #
-  # h
 
+  return(h)
 
 }
-#carparts <- read_csv("data-raw/carparts.csv")
-
-# carparts%>%
-#   group_by(key) %>%
-#   summarise(value = floor(mean(value))) %>%
-#   arrange(desc(value))
 
 
-test <- syph %>%
-  pivot_longer(cols = starts_with("a"), names_to = "key", values_to = "value") %>%
-  add_poisson_gest(value)
 
 
-test
 
-a <- test %>%
-  slice(1) %>%
-  pull(.gest_dist)
-
-options(dplyr.print_max = 100)
-
-a
