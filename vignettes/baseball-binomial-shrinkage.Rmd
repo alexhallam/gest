@@ -1,0 +1,62 @@
+---
+title: "Baseball Binomial Shrinkage"
+author: "Alex Hallam"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{baseball-binomial-shrinkage}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+In this vignette we will show how to use this package to shrink baseball averages. This is similar
+to beta-binomail shrinkage, but with a more flexible prior. We use the same setup as shown in 
+[David Robinson's Post](http://varianceexplained.org/r/empirical_bayes_baseball/).
+
+### Data Prepation
+
+We first prepare the data
+
+```{r setup}
+library(gest)
+library(Lahman)
+library(tidyverse)
+career <- Batting %>%
+  filter(AB > 0) %>%
+  anti_join(Pitching, by = "playerID") %>%
+  group_by(playerID) %>%
+  summarize(H = sum(H), AB = sum(AB)) %>%
+  mutate(average = H / AB)
+
+# use names along with the player IDs
+career <- Master %>%
+  tbl_df() %>%
+  select(playerID, nameFirst, nameLast) %>%
+  unite(name, nameFirst, nameLast, sep = " ") %>%
+  inner_join(career, by = "playerID") %>%
+  select(-playerID)
+
+head(career)
+```
+
+### Add posterior estimates
+
+We are now in a position to add posterior estimates. You will note that this operation takes a few seconds.
+This can be made faster by deceasing the grain of the parameter space (`theta_by`) which is set to 0.01 by
+default.
+
+```{r add_post}
+df_augmented <- career %>% 
+  mutate(x = H, n = AB) %>% 
+  add_binom_gest()
+
+head(df_augmented)
+```
+

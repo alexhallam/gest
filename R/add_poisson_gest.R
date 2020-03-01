@@ -32,6 +32,7 @@
 #'
 #' @examples
 #'
+#'dontrun{}\
 #' library(tidyverse)
 #' library(ZIM)
 #' data(syph)
@@ -40,6 +41,7 @@
 #'
 #' df %>%
 #'   add_poisson_gest(value)
+#'   }
 add_poisson_gest <- function(tbl, value,
                            cred_level = .80,
                            theta_from = -4,

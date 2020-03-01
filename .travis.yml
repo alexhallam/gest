@@ -6,3 +6,4 @@ r:
   - release
   - devel
 
+r_check_args: "--no-vignettes"
