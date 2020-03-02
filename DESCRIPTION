@@ -19,7 +19,9 @@ Imports:
     rlang,
     tibble,
     purrr,
-    stats
+    stats,
+    Lahman,
+    tidyverse
 Suggests:
     testthat,
     knitr,
