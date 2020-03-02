@@ -7,3 +7,5 @@ r:
   - devel
 
 r_check_args: "--no-vignettes"
+
+warnings_are_errors: false
