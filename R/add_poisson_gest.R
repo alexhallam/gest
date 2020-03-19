@@ -32,7 +32,8 @@
 #'
 #' @examples
 #'
-#'dontrun{}\
+#'dontrun{
+#' #Example 1 ##################################
 #' library(tidyverse)
 #' library(ZIM)
 #' data(syph)
@@ -42,12 +43,15 @@
 #' df %>%
 #'   add_poisson_gest(value)
 #'   }
+#' #Example 2 ##################################
+#' data("df")
+#' df %>% add_poisson_gest() %>% tidyr::unnest(.probs)
 add_poisson_gest <- function(tbl, value,
                            cred_level = .80,
                            theta_from = -4,
                            theta_to = 5.0,
-                           theta_by = 0.1
-
+                           theta_by = 0.1,
+                           probs = c(0.005, 0.025, 0.165, 0.25, 0.5, 0.75, 0.835, 0.975, 0.995)
                            ){
 
   value <- rlang::expr(value)
@@ -93,6 +97,12 @@ add_poisson_gest <- function(tbl, value,
     return(ghat_hi)
   }
 
+  get_alls <- function(.gest_dist, vals){
+  ghats <- sapply(purrr::map(vals, ~.gest_dist$tau[which(cumsum(.gest_dist$ghat) >= .)[1]]), "[[", 1)
+  return(ghats)
+  }
+
+
   h <- tbl %>%
     group_by(key) %>%
     summarise(value = floor(mean(value))) %>%
@@ -101,14 +111,11 @@ add_poisson_gest <- function(tbl, value,
     dplyr::mutate(
       .gest = purrr::map_dbl(.gest_dist, get_mle),
       .lo = purrr::map_dbl(.gest_dist, get_lo, alpha_lo/100),
-      .hi = purrr::map_dbl(.gest_dist, get_hi, alpha_hi/100)
+      .hi = purrr::map_dbl(.gest_dist, get_hi, alpha_hi/100),
+      .probs = purrr::map(.gest_dist, get_alls, probs)
     )
 
   return(h)
 
 }
-
-
-
-
 

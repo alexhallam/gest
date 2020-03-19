@@ -10,7 +10,8 @@ add_poisson_gest(
   cred_level = 0.8,
   theta_from = -4,
   theta_to = 5,
-  theta_by = 0.1
+  theta_by = 0.1,
+  probs = c(0.005, 0.025, 0.165, 0.25, 0.5, 0.75, 0.835, 0.975, 0.995)
 )
 }
 \arguments{
@@ -41,4 +42,21 @@ The original table with the following columns
 }
 \description{
 adds an estimated shinkage value obtained by G-Modeling
+}
+\examples{
+
+dontrun{
+#Example 1 ##################################
+library(tidyverse)
+library(ZIM)
+data(syph)
+df <- syph \%>\%
+  pivot_longer(cols = starts_with("a"), names_to = "key", values_to = "value")
+
+df \%>\%
+  add_poisson_gest(value)
+  }
+#Example 2 ##################################
+data("df")
+df \%>\% add_poisson_gest() \%>\% tidyr::unnest(.probs)
 }
